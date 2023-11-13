@@ -13,7 +13,7 @@ class Matrix{
 
 private:
     int nrows, ncols;
-    unsigned char attribs;
+
     ET *data;
 
 public:
@@ -63,7 +63,7 @@ public:
         if(numel() == m.numel()){
             nrows = m.size(1);
             ncols = m.size(2);
-            attribs = m.attribs;
+
             for(int i = 0; i < m.numel(); i++){
                 csi0(i) = m.csi0(i);
             }
@@ -82,8 +82,7 @@ public:
         ET* tmpr;
         tmpr = a->data; a->data = b->data; b->data = tmpr;
 
-        unsigned char tmpa;
-        tmpa = a->attribs; a->attribs = b->attribs; b->attribs = tmpa;
+
     }
 
 

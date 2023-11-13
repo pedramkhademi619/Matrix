@@ -1,4 +1,5 @@
 import numpy as np
+import re
 
 
 class Matrix:
@@ -168,6 +169,31 @@ class Matrix:
             raise IndexError("Invalid: Indexing should be in the form (row, column).")
 
     def __call__(self, *args):
+        """
+        To slice, you can use the 'slice' keyword.
+        =>
+        slice(start, end, step)
+
+        If you want to slice like lists,
+        put your expression inside the string.
+        =>
+        'start:end:step'
+        """
+        if isinstance(args[0], str):
+            Pattern = r"(\d*):(\d*):?(-?\d*)"
+            m = re.match(Pattern, args[0])
+            start = int(m.group(1))
+            end = int(m.group(2))
+            try:
+                step = int(m.group(3))
+            except:
+                step = 1
+            finally:
+                key = slice(start, end, step)
+
+            print(key)
+            return Matrix(self.data[key])
+
         return self.data[args]
 
     @property
