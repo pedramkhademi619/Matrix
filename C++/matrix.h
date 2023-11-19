@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <iostream>
 #include "utils.h"
-
+#include <cmath>
 using namespace std;
 
 #define ET float
@@ -17,6 +17,7 @@ private:
     ET *data;
 
 public:
+
     // default constructor
     inline Matrix(){
         this->nrows = 0;
@@ -40,6 +41,28 @@ public:
         minit(1,1);
         csi0(0) = val;
     }
+
+    Matrix createSubmatrix(int excludedRow, int excludedCol) const {
+        Matrix submatrix(nrows - 1, ncols - 1);
+        int subRow = 0, subCol = 0;
+
+        for (int i = 0; i < nrows; i++) {
+            if (i != excludedRow) {
+                subCol = 0;
+                for (int j = 0; j < ncols; j++) {
+                    if (j != excludedCol) {
+                        submatrix.cij0(subRow, subCol) = cij0(i, j);
+                        subCol++;
+                    }
+                }
+                subRow++;
+            }
+        }
+
+        return submatrix;
+    }
+
+
 
     inline void minit(int nr, int nc){
         nrows = nr;
@@ -144,6 +167,7 @@ public:
         free(this->data);
     }
 
+    //operators 😒️
     // unary + operator
     Matrix operator+() const{
         Matrix c(size(1),size(2));
@@ -275,6 +299,87 @@ public:
         }
         return c;
     }
+    // Binary / operator for matrix division
+    friend Matrix operator/(const Matrix &a, const Matrix &b) {
+        ASSERT(b.nrows == b.ncols, "Matrix B must be square for division.");
+        return a * b.inverse();
+    }
+
+// Binary / operator for scalar division
+    friend Matrix operator/(const Matrix &a, const ET &scalar) {
+        Matrix result(a.nrows, a.ncols);
+        for (int i = 0; i < a.numel(); i++) {
+            result.csi0(i) = a.csi0(i) / scalar;
+        }
+        return result;
+    }
+
+// Binary / operator for scalar division with scalar on the right
+    friend Matrix operator/(const ET &scalar, const Matrix &b) {
+        Matrix result(b.nrows, b.ncols);
+        for (int i = 0; i < b.numel(); i++) {
+            result.csi0(i) = scalar / b.csi0(i);
+        }
+        return result;
+    }
+    // Function to return equal larger numbers
+    Matrix operator>=(const Matrix &other) const{
+        Matrix result(nrows, ncols);
+        for (int i =0; i < numel(); i++){
+            result.csi0(i) = (csi0(i) >= other.csi0(i)) ? 1 : 0;
+        }
+        return result;
+    }
+
+    // Function to return equal smaller numbers
+    Matrix operator<=(const Matrix &other) const{
+        Matrix result(nrows, ncols);
+        for (int i =0; i < numel(); i++){
+            result.csi0(i) = (csi0(i) <= other.csi0(i)) ? 1 : 0;
+        }
+        return result;
+    }
+
+    // Equality return function
+    Matrix operator==(const Matrix &other) const {
+        Matrix result(nrows, ncols);
+        for (int i = 0; i < numel(); i++) {
+            result.csi0(i) = (csi0(i) == other.csi0(i)) ? 1 : 0;
+        }
+        return result;
+    }
+
+    Matrix operator!=(const Matrix &other) const {
+        Matrix result(nrows, ncols);
+        for (int i = 0; i < numel(); i++) {
+            result.csi0(i) = (csi0(i) != other.csi0(i)) ? 1 : 0;
+        }
+        return result;
+    }
+
+    // function to return indices that meet the combination conditions
+    Matrix operator&(const Matrix &other) const {
+        ASSERT(samesize(other), "Matrix dimensions must be the same for elementwise AND operation.");
+        Matrix result(nrows, ncols);
+        for (int i = 0; i < numel(); i++) {
+            result.csi0(i) = (csi0(i) && other.csi0(i)) ? 1 : 0;
+        }
+        return result;
+    }
+    // function to return indices that meet at least one of the conditions
+    Matrix operator|(const Matrix &other) const {
+        ASSERT(samesize(other), "Matrix dimensions must be the same for elementwise OR operation.");
+        Matrix result(nrows, ncols);
+        for (int i = 0; i < numel(); i++) {
+            result.csi0(i) = (csi0(i) || other.csi0(i)) ? 1 : 0;
+        }
+        return result;
+    }
+
+
+
+
+
 
 
     // axillury functions
@@ -285,6 +390,210 @@ public:
             start+=step;
         }
     }
+    Matrix power(int exponent) const{
+        if (exponent == 0){
+            return eye(nrows);
+        }
+        else if (exponent > 0){
+            Matrix result = *this;
+            for (int i = 0; i < exponent; i++){
+                result = result * (*this);
+            }
+
+        }
+        else{
+            inverse().power(-exponent);
+        }
+    }
+
+    Matrix elementwisePower(int exponent) const {
+        Matrix result(nrows, ncols);
+        for (int i = 0; i < numel(); i++){
+            result.csi0(i) = pow(csi0((i)), exponent);
+        }
+        return result;
+    };
+    Matrix sin() const {
+        Matrix result(nrows, ncols);
+        for (int i = 0; i < numel(); i++) {
+            result.csi0(i) = std::sin(csi0(i));
+        }
+        return result;
+    }
+    Matrix cos() const {
+        Matrix result(nrows, ncols);
+        for (int i = 0; i < numel(); i++) {
+            result.csi0(i) = std::cos(csi0(i));
+        }
+        return result;
+    }
+    Matrix tan() const {
+        Matrix result(nrows, ncols);
+        for (int i = 0; i < numel(); i++) {
+            result.csi0(i) = std::tan(csi0(i));
+        }
+        return result;
+    }
+
+    Matrix exp() const {
+        Matrix result(nrows, ncols);
+        for (int i = 0; i < numel(); i++) {
+            result.csi0(i) = std::exp(csi0(i));
+        }
+        return result;
+    }
+
+    //Statistical functions
+    ET min() const {
+        ET minValue = csi0(0);
+        for (int i = 1; i < numel(); i++) {
+            minValue = std::min(minValue, csi0(i));
+        }
+        return minValue;
+    }
+
+    ET max() const {
+        ET maxValue = csi0(0);
+        for (int i = 1; i < numel(); i++) {
+            maxValue = std::max(maxValue, csi0(i));
+        }
+        return maxValue;
+    }
+
+    ET mean() const {
+        ET sum = 0;
+        for (int i = 0; i < numel(); i++) {
+            sum += csi0(i);
+        }
+        return sum / numel();
+    }
+
+    Matrix sumRows() const {
+        Matrix result(1, ncols);
+        for (int j = 0; j < ncols; j++) {
+            ET sum = 0;
+            for (int i = 0; i < nrows; i++) {
+                sum += cij0(i, j);
+            }
+            result.cij0(0, j) = sum;
+        }
+        return result;
+    }
+
+    // تابع برگشت مجموع اعداد ستونی
+    Matrix sumCols() const {
+        Matrix result(nrows, 1);
+        for (int i = 0; i < nrows; i++) {
+            ET sum = 0;
+            for (int j = 0; j < ncols; j++) {
+                sum += cij0(i, j);
+            }
+            result.cij0(i, 0) = sum;
+        }
+        return result;
+    }
+
+    // تابع برگشت ضرب اعداد سطری
+    Matrix productRows() const {
+        Matrix result(1, ncols);
+        for (int j = 0; j < ncols; j++) {
+            ET product = 1;
+            for (int i = 0; i < nrows; i++) {
+                product *= cij0(i, j);
+            }
+            result.cij0(0, j) = product;
+        }
+        return result;
+    }
+
+    // تابع برگشت ضرب اعداد ستونی
+    Matrix productCols() const {
+        Matrix result(nrows, 1);
+        for (int i = 0; i < nrows; i++) {
+            ET product = 1;
+            for (int j = 0; j < ncols; j++) {
+                product *= cij0(i, j);
+            }
+            result.cij0(i, 0) = product;
+        }
+        return result;
+    }
+
+    ET variance() const {
+        ET meanValue = mean();
+        ET sumSquaredDeviations = 0;
+        for (int i = 0; i < numel(); i++) {
+            ET deviation = csi0(i) - meanValue;
+            sumSquaredDeviations += deviation * deviation;
+        }
+        return sumSquaredDeviations / numel();
+    }
+
+    ET std() const {
+        return std::sqrt(variance());
+    }
+    Matrix columnVar() const {
+        Matrix result(1, ncols);
+        for (int j = 0; j < ncols; j++) {
+            ET meanValue = sumCols().csi0(j) / nrows;
+            ET sumSquaredDeviations = 0;
+            for (int i = 0; i < nrows; i++) {
+                ET deviation = cij0(i, j) - meanValue;
+                sumSquaredDeviations += deviation * deviation;
+            }
+            result.cij0(0, j) = sumSquaredDeviations / nrows;
+        }
+        return result;
+    }
+
+    Matrix columnStdDev() const {
+        Matrix result(1, ncols);
+        for (int j = 0; j < ncols; j++) {
+            ET meanValue = sumCols().csi0(j) / nrows;
+            ET sumSquaredDeviations = 0;
+            for (int i = 0; i < nrows; i++) {
+                ET deviation = cij0(i, j) - meanValue;
+                sumSquaredDeviations += deviation * deviation;
+            }
+            result.cij0(0, j) = std::sqrt(sumSquaredDeviations / nrows);
+        }
+        return result;
+    }
+
+    Matrix rowVar() const {
+        Matrix result(nrows, 1);
+        for (int i = 0; i < nrows; i++) {
+            ET meanValue = sumRows().csi0(i) / ncols;
+            ET sumSquaredDeviations = 0;
+            for (int j = 0; j < ncols; j++) {
+                ET deviation = cij0(i, j) - meanValue;
+                sumSquaredDeviations += deviation * deviation;
+            }
+            result.cij0(i, 0) = sumSquaredDeviations / ncols;
+        }
+        return result;
+    }
+
+    // تابع برگشت انحراف معیار هر سطر
+    Matrix rowStdDev() const {
+        Matrix result(nrows, 1);
+        for (int i = 0; i < nrows; i++) {
+            ET meanValue = sumRows().csi0(i) / ncols;
+            ET sumSquaredDeviations = 0;
+            for (int j = 0; j < ncols; j++) {
+                ET deviation = cij0(i, j) - meanValue;
+                sumSquaredDeviations += deviation * deviation;
+            }
+            result.cij0(i, 0) = std::sqrt(sumSquaredDeviations / ncols);
+        }
+        return result;
+    }
+
+
+
+    // unimplemented Auxiliary functions
+    int sum(){}
+
 
     /**********************/
     /*** static methods ***/
@@ -323,7 +632,77 @@ public:
         }
         return retmat;
     }
+    static Matrix randn(int nrows, int ncols) {
+        Matrix retmat(nrows, ncols);
+        int i;
+        for (i = 0; i < retmat.numel(); i++) {
+            double u1 = (std::rand() + 1.0) / (RAND_MAX + 1.0);  // To avoid log(0)
+            double u2 = (std::rand() + 1.0) / (RAND_MAX + 1.0);
+            double rand_std_normal = std::sqrt(-2.0 * std::log(u1)) * std::cos(2.0 * M_PI * u2);
+            retmat.csi0(i) = rand_std_normal;
+        }
+        return retmat;
+    }
+    ET determinant() const {
+        ASSERT(nrows == ncols, "Matrix must be square for determinant calculation.");
+
+        if (nrows == 1) {
+            return csi0(0);
+        } else if (nrows == 2) {
+            return cij0(0, 0) * cij0(1, 1) - cij0(0, 1) * cij0(1, 0);
+        } else {
+            ET det = 0;
+            for (int i = 0; i < ncols; i++) {
+                Matrix submatrix = createSubmatrix(0, i);
+                det += (i % 2 == 0 ? 1 : -1) * cij0(0, i) * submatrix.determinant();
+            }
+            return det;
+        }
+    }
+
+    // Function to find the inverse of the matrix
+    Matrix inverse()  const {
+        ASSERT(nrows == ncols, "Matrix must be square for inverse calculation.");
+
+        ET det = determinant();
+        ASSERT(det != 0, "Matrix is singular, and its inverse does not exist.");
+
+        Matrix invMatrix(nrows, ncols);
+
+        for (int i = 0; i < nrows; i++) {
+            for (int j = 0; j < ncols; j++) {
+                Matrix submatrix = createSubmatrix(i, j);
+                invMatrix.cij0(i, j) = ((i + j) % 2 == 0 ? 1 : -1) * submatrix.determinant() / det;
+            }
+        }
+
+        return invMatrix.transpose();
+    }
+
+    Matrix Pinv()  {
+        Matrix transposed = transpose();
+        Matrix result = transposed * (*this);
+        return result.inverse() * transposed;
+    }
+
+    Matrix transpose()  {
+        Matrix transposed(ncols, nrows);
+        for (int i = 0; i < nrows; i++) {
+            for (int j = 0; j < ncols; j++) {
+                transposed.cij0(j, i) = cij0(i, j);
+            }
+        }
+        return transposed;
+    }
+
+
+
 };
+
+
+
+
+
 
 
 #endif // MATRIX_H

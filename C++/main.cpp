@@ -43,12 +43,17 @@ int test_matrix(){
     // value to matrix multiplication
     std::cout << 3*mat << std::endl;
     std::cout << mat*3 << std::endl;
+    std::cout<<mat.transpose()<<std::endl;
 
     // matrix to matrix multiplication
     Matrix matt(4,3);
     matt.range(0,12);
     std::cout << mat*matt << std::endl;
+
     std::cout << __func__ << " Ended!" << std::endl << std::endl;
+
+
+
     return 0;
 }
 

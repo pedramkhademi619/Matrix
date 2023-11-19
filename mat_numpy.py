@@ -236,6 +236,11 @@ class Matrix:
         return np.prod(self.data, axis=axis)
 
 
-A = Matrix.randn(3, 3)
-print(A, end="\n\n\n")
-print(A(slice(1, 3)))
+if __name__ == "__main__":
+    
+    
+    
+    A = Matrix.randn(3,"")
+    print(A, end="\n\n\n")
+    print(A(slice(1, 3)))
+
