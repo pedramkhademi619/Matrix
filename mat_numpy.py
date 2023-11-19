@@ -234,13 +234,3 @@ class Matrix:
 
     def product(self, axis=None):
         return np.prod(self.data, axis=axis)
-
-
-if __name__ == "__main__":
-    
-    
-    
-    A = Matrix.randn(3,"")
-    print(A, end="\n\n\n")
-    print(A(slice(1, 3)))
-
