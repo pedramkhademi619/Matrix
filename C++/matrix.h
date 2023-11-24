@@ -1,5 +1,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
+#define ELEMENT_WISE_POWER(base, exponent) (base).elementWisePower(exponent)
+#define base*^exponent ELEMENT_WISE_POWER(base, exponent)
 
 #include <cstdlib>
 #include <iostream>
