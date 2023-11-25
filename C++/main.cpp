@@ -50,7 +50,20 @@ int test_matrix(){
     matt.range(0,12);
     std::cout << mat*matt << std::endl;
 
+    ET arr[] = {1.0, 1.0 / 2.0, 1.0 / 3.0, 1.0 / 2.0, 1.0 / 3.0, 1.0 / 4.0, 1.0 / 3.0, 1.0 / 4.0, 1.0 / 5.0};
+    ET arr1[] = {1.0, .45, .67, .67, 1., .33, .33, .55, 1.};
+// Create a Matrix using the new constructor
+    Matrix mat45(arr1, 3, 3);
+
+
+    // Print the matrix
+    cout << mat45.transpose() << "\n\n\n\n\n\n\n"<< endl;
+    cout << mat45.inverse() << "\n\n\n\n\n\n\n"<< endl;
+
+
+
     std::cout << __func__ << " Ended!" << std::endl << std::endl;
+
 
 
 

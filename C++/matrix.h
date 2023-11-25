@@ -1,7 +1,6 @@
 #ifndef MATRIX_H
 #define MATRIX_H
-#define ELEMENT_WISE_POWER(base, exponent) (base).elementWisePower(exponent)
-#define base*^exponent ELEMENT_WISE_POWER(base, exponent)
+
 
 #include <cstdlib>
 #include <iostream>
@@ -9,7 +8,7 @@
 #include <cmath>
 using namespace std;
 
-#define ET float
+#define ET double
 
 class Matrix{
 
@@ -42,6 +41,11 @@ public:
     Matrix(const ET& val){
         minit(1,1);
         csi0(0) = val;
+    }
+
+    inline Matrix(ET *arrdata, int nrows, int ncols){
+        minit(nrows, ncols);
+        load(arrdata);
     }
 
     Matrix createSubmatrix(int excludedRow, int excludedCol) const {

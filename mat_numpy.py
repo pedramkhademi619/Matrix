@@ -58,7 +58,7 @@ class Matrix:
 
     @property
     def transpose(self):
-        return Matrix(self.data.T)
+        return Matrix(np.transpose(self.data))
 
     @property
     def inv(self):
@@ -234,3 +234,11 @@ class Matrix:
 
     def product(self, axis=None):
         return np.prod(self.data, axis=axis)
+
+
+A = Matrix([[1.33, 4.28, -1.58], [3.25, 5.51, 7.88], [7.18, 4.19, -1.45]])
+B = Matrix([[9.11, 3.71, 5.16]]).transpose
+X = Matrix([[1.6473, 1.2237, -1.0643]]).transpose
+print(B)
+print(A * X)
+print(B - A * X)
