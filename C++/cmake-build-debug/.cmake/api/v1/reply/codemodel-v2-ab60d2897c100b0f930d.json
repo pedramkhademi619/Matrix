@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "C__::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-C__-Debug-07bb0fee91bdc13e35ff.json",
+					"jsonFile" : "target-C__-Debug-986f12517f269c1ffac6.json",
 					"name" : "C__",
 					"projectIndex" : 0
 				}
@@ -49,8 +49,8 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/pedra/OneDrive/Desktop/project matrix by matlab/C++/cmake-build-debug",
-		"source" : "C:/Users/pedra/OneDrive/Desktop/project matrix by matlab/C++"
+		"build" : "D:/other/Matrix/C++/cmake-build-debug",
+		"source" : "D:/other/Matrix/C++"
 	},
 	"version" : 
 	{

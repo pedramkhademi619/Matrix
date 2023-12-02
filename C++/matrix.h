@@ -6,7 +6,8 @@
 #include <iostream>
 #include "utils.h"
 #include <cmath>
-using namespace std;
+#include <vector>
+
 
 #define ET double
 
@@ -15,17 +16,14 @@ class Matrix{
 private:
     int nrows, ncols;
 
-    ET *data;
+    std::vector<ET> data;
 
 public:
 
     // default constructor
-    inline Matrix(){
-        this->nrows = 0;
-        this->ncols = 0;
-        this->data = NULL;
-    }
+    inline Matrix() : nrows(0), ncols(0) {}
 
+    // Parameterized constructor
     inline Matrix(int nrows, int ncols){
         minit(nrows, ncols);
     }
@@ -33,17 +31,16 @@ public:
     // copy constructor
     inline Matrix(const Matrix & m){
         minit(m.size(1), m.size(2));
-        for(int i = 0; i < numel(); i++){
-            csi0(i) = m.csi0(i);
-        }
+        data = m.data;
     }
 
+    // Constructor with a single value
     Matrix(const ET& val){
         minit(1,1);
         csi0(0) = val;
     }
 
-    inline Matrix(ET *arrdata, int nrows, int ncols){
+    inline Matrix(const std::vector<ET> &arrdata, int nrows, int ncols){
         minit(nrows, ncols);
         load(arrdata);
     }
@@ -70,70 +67,63 @@ public:
 
 
 
-    inline void minit(int nr, int nc){
+    inline void minit(int nr, int nc) {
         nrows = nr;
         ncols = nc;
-        if(!isempty()){
-            if (numel()){
-                data = (ET*) malloc(sizeof(ET)*numel());
-                ASSERT(data != NULL, "minit Cannot allocate memory! ");
-            } else {
-                data = (ET*) NULL;
-            }
-        }else{
-            data = (ET*)(void *)0;
-        }
+
+        // Clear the existing data and resize the vector
+        data.clear();
+        data.resize(numel(), ET(0));
     }
 
-
-    inline Matrix& operator=(const Matrix& m){
-        if(this == &m)
+    inline Matrix& operator=(const Matrix& m) {
+        if (this == &m)
             return *this;
-        if(numel() == m.numel()){
+
+        if (numel() == m.numel()) {
             nrows = m.size(1);
             ncols = m.size(2);
-
-            for(int i = 0; i < m.numel(); i++){
-                csi0(i) = m.csi0(i);
-            }
-        }else{
+            data = m.data;  // انتقال داده با استفاده از std::vector
+        } else {
             Matrix tmp(m);
-            swap(this,&tmp);
+            swap(*this, tmp);
         }
+
         return *this;
     }
 
-    inline void swap(Matrix* a, Matrix* b){
-        int tmpi;
-        tmpi = a->nrows; a->nrows = b->nrows; b->nrows = tmpi;
-        tmpi = a->ncols; a->ncols = b->ncols; b->ncols = tmpi;
 
-        ET* tmpr;
-        tmpr = a->data; a->data = b->data; b->data = tmpr;
+    inline void swap(Matrix& a, Matrix& b) {
+        using std::swap;  // Import std::swap into the scope
 
-
+        swap(a.nrows, b.nrows);
+        swap(a.ncols, b.ncols);
+        swap(a.data, b.data);
     }
 
 
 
-    virtual inline ET& csi0(int i) const{
-        return data[i];
+
+    virtual inline ET& csi0(int i) const {
+        return const_cast<ET&>(data[i]);
     }
 
-    virtual inline ET& cij0(int i , int j) const{
-        return data[i+j*nrows];
+
+    virtual inline ET& cij0(int i, int j) const {
+        return const_cast<ET&>(data[i + j * nrows]);
     }
 
-    void load(ET *arrdata){
+
+    void load(const std::vector<ET> &arrdata) {
         int i, j;
-        for(i = 0; i < nrows; i++){
-            for(j = 0; j < ncols; j++){
-                this->cij0(i,j) = arrdata[j*this->nrows+i];
+        for (i = 0; i < nrows; i++) {
+            for (j = 0; j < ncols; j++) {
+                this->cij0(i, j) = arrdata[j * this->nrows + i];
             }
         }
     }
 
-    void print(ostream& os) const {
+    void print(std::ostream& os) const {
         os << "--------- Matrix("
            << this->nrows << "x"
            << this->ncols <<
@@ -143,12 +133,12 @@ public:
             for(j = 0; j < ncols; j++){
                 os << this->cij0(i,j) << " ";
             }
-            os << endl;
+            os << std::endl;
         }
         os << "------------------------------" << std::endl;
     }
 
-    friend ostream & operator<<(ostream& os, const Matrix& m){
+    friend std::ostream & operator<<(std::ostream& os, const Matrix& m){
         m.print(os);
         return os;
     }
@@ -169,9 +159,7 @@ public:
         return nrows == m.size(1) && ncols == m.size(2);
     }
 
-    inline ~Matrix(){
-        free(this->data);
-    }
+    inline ~Matrix() = default;
 
     //operators 😒️
     // unary + operator
@@ -257,37 +245,29 @@ public:
 
 
     // binary * operator
-    friend Matrix operator*(const Matrix & a, const Matrix & b) {
-        if (a.isscalar()){
-            Matrix c = Matrix(b.size(1), b.size(2));
-            ET v1 = (ET)a.csi0(0);
-            for (int i = 0; i < b.numel(); i++){
-                b.csi0(i) *= v1;
-            }
-        }
-        else if (b.isscalar()) {
-            Matrix c = Matrix(a.size(1), a.size(2));
-            ET v2 = (ET) b.csi0(0);
-            for (int i = 0; i < a.numel(); i++) {
-                a.csi0(i) *= v2;
-            }
-        }
-        else {
-            ASSERT(a.size(2) == b.size(1), "Matrix dimension mismatch in operation '*'.");
-            Matrix c = Matrix(a.size(1), b.size(2));
-            for (int i = 0; i < a.size(1); i++) {
-                for (int j = 0; j < b.size(2); j++) {
-                    c.cij0(i, j) = 0;
-                    for (int k = 0; k < b.size(1); k++) {
-                        c.cij0(i, j) +=  a.cij0(i, k) * b.cij0(k, j);
+    friend Matrix operator*(const Matrix& a, const Matrix& b) {
+        Matrix result;
 
-
-                    }
-                }
-            }
-            return c;
+        if (a.isscalar()) {
+            result = Matrix(b.size(1), b.size(2));
+            ET v1 = static_cast<ET>(a.csi0(0));
+            for (int i = 0; i < b.numel(); i++)
+                result.csi0(i) = v1 * b.csi0(i);
+        } else if (b.isscalar()) {
+            result = Matrix(a.size(1), a.size(2));
+            ET v2 = static_cast<ET>(b.csi0(0));
+            for (int i = 0; i < a.numel(); i++)
+                result.csi0(i) = a.csi0(i) * v2;
+        } else if (a.samesize(b)) {
+            result = Matrix(a.size(1), a.size(2));
+            for (int i = 0; i < a.numel(); i++)
+                result.csi0(i) = a.csi0(i) * b.csi0(i);
+        } else {
+            ERROR("Matrix dimension mismatch in operation '*'.");
+            return Matrix::empty();
         }
-        return Matrix::empty();
+
+        return result;
     }
 
     friend inline Matrix operator*(const Matrix & a, const double& b){
@@ -305,14 +285,27 @@ public:
         }
         return c;
     }
-    // Binary / operator for matrix division
-    friend Matrix operator/(const Matrix &a, const Matrix &b) {
-        ASSERT(b.nrows == b.ncols, "Matrix B must be square for division.");
-        return a * b.inverse();
-    }
 
+    // Binary / operator for matrix division
+    friend Matrix operator/(const Matrix& a, const Matrix& b) {
+        ASSERT(b.nrows == b.ncols, "Matrix B must be square for division.");
+        Matrix result;
+
+        if (b.numel() == 1 && b.csi0(0) == 0) {
+            ERROR("Matrix division by zero.");
+            return Matrix::empty();
+        }
+
+        result = a * b.inverse();
+        return result;
+    }
 // Binary / operator for scalar division
-    friend Matrix operator/(const Matrix &a, const ET &scalar) {
+    friend Matrix operator/(const Matrix& a, const ET& scalar) {
+        if (scalar == 0) {
+            ERROR("Scalar division by zero.");
+            return Matrix::empty();
+        }
+
         Matrix result(a.nrows, a.ncols);
         for (int i = 0; i < a.numel(); i++) {
             result.csi0(i) = a.csi0(i) / scalar;
@@ -321,13 +314,20 @@ public:
     }
 
 // Binary / operator for scalar division with scalar on the right
-    friend Matrix operator/(const ET &scalar, const Matrix &b) {
+    friend Matrix operator/(const ET& scalar, const Matrix& b) {
+        if (b.numel() == 1 && b.csi0(0) == 0) {
+            ERROR("Matrix division by zero.");
+            return Matrix::empty();
+        }
+
         Matrix result(b.nrows, b.ncols);
         for (int i = 0; i < b.numel(); i++) {
             result.csi0(i) = scalar / b.csi0(i);
         }
         return result;
     }
+
+
     // Function to return equal larger numbers
     Matrix operator>=(const Matrix &other) const{
         Matrix result(nrows, ncols);
@@ -411,21 +411,17 @@ public:
             inverse().power(-exponent);
         }
     }
+    friend Matrix elementwisePower(const Matrix& m, const Matrix& exponent) {
+        ASSERT(m.samesize(exponent), "Matrix dimension mismatch in elementwise power.");
 
-    Matrix elementwisePower(int exponent) const {
-        Matrix result(nrows, ncols);
-        for (int i = 0; i < numel(); i++){
-            result.csi0(i) = pow(csi0((i)), exponent);
+        Matrix result(m.nrows, m.ncols);
+        for (int i = 0; i < m.numel(); i++) {
+            result.csi0(i) = std::pow(m.csi0(i), exponent.csi0(i));
         }
-        return result;
-    };
-    Matrix sin() const {
-        Matrix result(nrows, ncols);
-        for (int i = 0; i < numel(); i++) {
-            result.csi0(i) = std::sin(csi0(i));
-        }
+
         return result;
     }
+
     Matrix cos() const {
         Matrix result(nrows, ncols);
         for (int i = 0; i < numel(); i++) {
@@ -598,7 +594,7 @@ public:
 
 
     // unimplemented Auxiliary functions
-    int sum(){}
+//    int sum(){}
 
 
     /**********************/
@@ -699,6 +695,13 @@ public:
             }
         }
         return transposed;
+    }
+
+    //indices
+
+    inline ET& operator()(int i) const {
+        ASSERT(i < numel(), "Index out of bounds.");
+        return csi0(i);
     }
 
 
