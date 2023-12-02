@@ -1,8 +1,8 @@
 #ifndef MATRIX_H
 #define MATRIX_H
+#define COLON ,
 
 
-#include <cstdlib>
 #include <iostream>
 #include "utils.h"
 #include <cmath>
@@ -159,7 +159,10 @@ public:
         return nrows == m.size(1) && ncols == m.size(2);
     }
 
-    inline ~Matrix() = default;
+    inline ~Matrix() {
+
+
+    }
 
     //operators 😒️
     // unary + operator
@@ -699,10 +702,64 @@ public:
 
     //indices
 
+    //num indexing
     inline ET& operator()(int i) const {
         ASSERT(i < numel(), "Index out of bounds.");
         return csi0(i);
     }
+
+    //vector indexing
+    Matrix operator()(const std::vector<int>& indices) const {
+        Matrix result(indices.size(), 1);
+        for (size_t i = 0; i < indices.size(); ++i) {
+            int index = indices[i];
+            ASSERT(index < numel(), "Index out of bounds.");
+            result.csi0(i) = csi0(index);
+        }
+        return result;
+    }
+
+//    //range indexing
+//    Matrix operator()(const std::string& indices) const {
+//        size_t colonPos = indices.find(':');
+//        if (colonPos == std::string::npos) {
+//            // No colon found, treat it as a single index
+//            int index = std::stoi(indices);
+//            ASSERT(index < numel(), "Index out of bounds.");
+//            return Matrix(csi0(index));
+//        } else {
+//            // Colon found, treat it as a range
+//            int start = std::stoi(indices.substr(0, colonPos));
+//            int end = std::stoi(indices.substr(colonPos + 1));
+//            ASSERT(start <= end, "Invalid range: start should be less than or equal to end.");
+//            ASSERT(end < numel(), "Index out of bounds.");
+//
+//            int rangeSize = end - start + 1;
+//            Matrix result(rangeSize, 1);
+//
+//            for (int i = 0; i < rangeSize; ++i) {
+//                result.csi0(i) = csi0(start + i);
+//            }
+//
+//            return result;
+//        }
+//    }
+
+    Matrix operator()(int start, int end) const {
+        ASSERT(start >= 1 && end <= numel() && start <= end, "Invalid range indices.");
+
+        int size = end - start + 1;
+        Matrix result(size, 1);
+
+        for (int i = 0; i < size; ++i) {
+            result.csi0(i) = csi0(start + i - 1);
+        }
+
+        return result;
+    }
+
+
+
 
 
 
