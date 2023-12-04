@@ -1,15 +1,15 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 #define __ ,
-
-
+#define END "end"
+#define ET double
 #include <iostream>
 #include "utils.h"
 #include <cmath>
 #include <vector>
+#include <sstream>
 
 
-#define ET double
 
 class Matrix{
 
@@ -394,7 +394,7 @@ public:
     // axillury functions
     void range(ET start, ET end, ET step = 1){
         int ub = (end - start) / step;
-        for(int i = 0; i < numel() && i < ub; i++){
+        for(int i = 0; i < numel() && i <= ub; i++){
             this->csi0(i) = start;
             start+=step;
         }
@@ -720,21 +720,52 @@ public:
 //    }
 
     //range indexing
+//    Matrix operator()(const std::string& indices) const {
+//        size_t colonPos = indices.find(':');
+//        if (colonPos == std::string::npos) {
+//            // No colon found, treat it as a single index
+//            int index = std::stoi(indices);
+//            ASSERT(index < numel(), "Index out of bounds.");
+//            return Matrix(csi0(index));
+//        } else {
+//            // Colon found, treat it as a range
+//            int start = std::stoi(indices.substr(0, colonPos));
+//            int end = std::stoi(indices.substr(colonPos + 1));
+//            ASSERT(start <= end, "Invalid range: start should be less than or equal to end.");
+//            ASSERT(end < numel(), "Index out of bounds.");
+//
+//            int rangeSize = end - start + 1;
+//            Matrix result(rangeSize, 1);
+//
+//            for (int i = 0; i < rangeSize; ++i) {
+//                result.csi0(i) = csi0(start + i);
+//            }
+//
+//            return result;
+//        }
+//    }
+
     Matrix operator()(const std::string& indices) const {
-        size_t colonPos = indices.find(':');
-        if (colonPos == std::string::npos) {
-            // No colon found, treat it as a single index
-            int index = std::stoi(indices);
-            ASSERT(index < numel(), "Index out of bounds.");
-            return Matrix(csi0(index));
-        } else {
+
+        if (indices == "end") return csi0(numel() - 1);
+
+        std::istringstream iss(indices);
+        std::vector<int> indicesVector;
+        int index;
+
+        while (iss >> index) {
+            indicesVector.push_back(index);
+        }
+
+        if (indices.find(':') != std::string::npos) {
             // Colon found, treat it as a range
-            int start = std::stoi(indices.substr(0, colonPos));
+            size_t colonPos = indices.find(':');
+            int start = std::stoi(indices.substr(0, colonPos ));
             int end = std::stoi(indices.substr(colonPos + 1));
             ASSERT(start <= end, "Invalid range: start should be less than or equal to end.");
             ASSERT(end < numel(), "Index out of bounds.");
 
-            int rangeSize = end - start + 1;
+            int rangeSize = end - start ;
             Matrix result(rangeSize, 1);
 
             for (int i = 0; i < rangeSize; ++i) {
@@ -742,8 +773,23 @@ public:
             }
 
             return result;
+        } else {
+            // No colon found, treat it as vector indexing
+            Matrix result(indicesVector.size(), 1);
+            for (size_t i = 0; i < indicesVector.size(); ++i) {
+                int index = indicesVector[i];
+                ASSERT(index < numel(), "Index out of bounds.");
+                result.csi0(i) = csi0(index);
+            }
+            return result;
         }
     }
+
+    // Other parts of the Matrix class
+
+
+
+
 
     Matrix operator()(int start, int end) const {
         ASSERT(start >= 1 && end <= numel() && start <= end, "Invalid range indices.");

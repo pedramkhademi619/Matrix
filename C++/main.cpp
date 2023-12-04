@@ -62,16 +62,25 @@ int test_matrix(){
 //    std::cout << mat45.inverse() << "\n\n\n\n\n\n\n"<< std::endl;
 //    std::cout<<mat45(8)<<std::endl;
 
-    Matrix myMatrix(4, 4);
-    myMatrix.range(1, 16); // مقداردهی اولیه با اعداد از 1 تا 16
+    Matrix myMatrix(5, 4);
+    myMatrix.range(1, 21); // مقداردهی اولیه با اعداد از 1 تا 16
     std::cout<<myMatrix<<std::endl;
 //    std::vector<int> indices = {0, 4, 5, 8,14}; // اندیس‌های مورد نظر
 //    Matrix result = myMatrix({0,1,2,3,8,5,4});
-        Matrix result = myMatrix("3:8");
-    std::cout << result << std::endl; // چاپ ماتریس حاصل
+        Matrix result = myMatrix("7:9");
+    Matrix result1= myMatrix("3 5 8 9 10");
+    std::cout << result1 << std::endl; // چاپ ماتریس حاصل
 
 
-    std::cout<<myMatrix(3 __ 9);
+//    std::cout<<myMatrix(3 __ 9);
+
+
+    // Example of vector of ranges indexing
+
+    // Print the result
+    std::cout << "Result: " << result << std::endl;
+
+    std::cout << "Result: " << myMatrix(END) << std::endl;
     std::cout << __func__ << " Ended!" << std::endl << std::endl;
 
 
